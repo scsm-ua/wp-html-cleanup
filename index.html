@@ -251,7 +251,7 @@
 <body>
     <div class="container">
         <h1>WordPress HTML Cleanup Tool</h1>
-        <p class="subtitle">Remove spans, inline styles, classes, and color attributes from HTML</p>
+        <p class="subtitle">Remove spans, inline styles, classes, and color attributes • Convert deprecated align to modern CSS</p>
 
         <div class="rules">
             <div class="rules-title">Cleanup Rules:</div>
@@ -260,6 +260,7 @@
                 <li>Remove all style="" attributes</li>
                 <li>Remove all class="" attributes</li>
                 <li>Remove all color="" attributes</li>
+                <li>Convert align="" to style="text-align: ..."</li>
                 <li>Preserve semantic tags (&lt;b&gt;, &lt;i&gt;, &lt;h1&gt;-&lt;h6&gt;, &lt;p&gt;, etc.)</li>
             </ul>
         </div>
@@ -426,10 +427,18 @@
 
         // Remove unwanted attributes from element
         function cleanAttributes(element) {
-            // Remove style, class, and color attributes
+            // First, remove all style, class, and color attributes
             element.removeAttribute('style');
             element.removeAttribute('class');
             element.removeAttribute('color');
+            
+            // Then, convert deprecated align attribute to modern CSS style
+            const align = element.getAttribute('align');
+            if (align) {
+                const alignValue = align.toLowerCase();
+                element.setAttribute('style', `text-align: ${alignValue};`);
+                element.removeAttribute('align');
+            }
             
             // Also remove lang attribute if present (optional, based on your needs)
             // Uncomment the line below if you want to remove lang attributes too

@@ -1,8 +1,8 @@
 ## Plan: HTML Cleanup Tool for WordPress ✅ COMPLETED
 
-Built a client-side web application to clean HTML content for WordPress usage by removing spans, inline styles, classes, and color attributes while preserving semantic HTML tags.
+Built a client-side web application to clean HTML content for WordPress usage by removing spans, inline styles, classes, and color attributes while preserving semantic HTML tags and converting deprecated align attributes to modern CSS.
 
-**TL;DR**: Created a single self-contained HTML file with vanilla JavaScript that accepts HTML input, processes it to remove spans (unwrapping content) and style attributes, then outputs clean HTML ready for WordPress.
+**TL;DR**: Created a single self-contained HTML file with vanilla JavaScript that accepts HTML input, processes it to remove spans (unwrapping content) and style attributes, converts deprecated `align` to `style="text-align: ..."`, then outputs clean HTML ready for WordPress.
 
 **Implementation Summary**
 
@@ -26,6 +26,7 @@ Built a client-side web application to clean HTML content for WordPress usage by
    - Strips `style` attributes from all elements
    - Strips `class` attributes from all elements  
    - Strips `color` attributes from all elements
+   - Converts deprecated `align=""` to modern `style="text-align: ..."`
    - Preserves semantic tags: `<b>`, `<i>`, `<h1>`-`<h6>`, `<p>`, etc.
    - Serializes cleaned DOM back to HTML string
 
@@ -74,6 +75,7 @@ All verification steps completed successfully:
 4. ✅ Output verification:
    - All `<span>` tags removed (content preserved)
    - All `style="..."`, `class="..."`, `color="..."` attributes removed
+   - Deprecated `align=""` attributes converted to `style="text-align: ..."`
    - Semantic tags like `<b>`, `<i>`, `<h4>` remain intact
    - Text content completely preserved
 5. ✅ Copy-to-clipboard functionality works
@@ -90,13 +92,17 @@ All verification steps completed successfully:
 - ✅ **Whitespace preservation**: Maintain original whitespace and line breaks
 - ✅ **Error detection**: Auto-detect parsing issues and warn users
 - ✅ **Modern UX**: Gradient design, animations, keyboard shortcuts, real-time feedback
+- ✅ **Align conversion**: Convert deprecated `align` attribute to modern CSS (removed old styles first, then adds clean `text-align` style)
 
 **Technical Implementation**
 
 - Uses `DOMParser` to parse HTML into DOM tree
 - Recursively traverses DOM nodes with bottom-up approach
 - For span elements: unwraps by moving children to parent, then removes span
-- For other elements: removes style/class/color attributes
+- For other elements: 
+  1. Removes all style/class/color attributes (clears existing inline styles)
+  2. Converts deprecated `align` attribute to modern CSS `style="text-align: ..."`
+  3. Removes the `align` attribute
 - Returns cleaned HTML using `innerHTML`
 - Detects malformed HTML and provides warnings
 - Counts unclosed tags for reporting
