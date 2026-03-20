@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress HTML Cleanup Tool</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1400px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 16px;
+        }
+
+        .counter {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea:read-only {
+            background-color: #f7fafc;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-icon::before {
+            font-size: 18px;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+
+        .rules {
+            background: #edf2f7;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .rules-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .rules ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .rules li {
+            color: #4a5568;
+            font-size: 13px;
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .rules li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #bee3f8;
+            border-left: 4px solid #3182ce;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #2c5282;
+            display: none;
+        }
+
+        .info-box.show {
+            display: block;
+        }
+
+        .info-box strong {
+            color: #2a4365;
+        }
+
+        @media (max-width: 968px) {
+            .panels {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            textarea {
+                min-height: 300px;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WordPress HTML Cleanup Tool</h1>
+        <p class="subtitle">Remove spans, inline styles, classes, and color attributes from HTML</p>
+
+        <div class="rules">
+            <div class="rules-title">Cleanup Rules:</div>
+            <ul>
+                <li>Remove all &lt;span&gt; tags (content preserved)</li>
+                <li>Remove all style="" attributes</li>
+                <li>Remove all class="" attributes</li>
+                <li>Remove all color="" attributes</li>
+                <li>Preserve semantic tags (&lt;b&gt;, &lt;i&gt;, &lt;h1&gt;-&lt;h6&gt;, &lt;p&gt;, etc.)</li>
+            </ul>
+        </div>
+
+        <div class="panels">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Input HTML</span>
+                    <span class="counter" id="input-counter">0 chars</span>
+                </div>
+                <textarea id="input" placeholder="Paste your HTML here..."></textarea>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Cleaned Output</span>
+                    <span class="counter" id="output-counter">0 chars</span>
+                </div>
+                <textarea id="output" readonly placeholder="Cleaned HTML will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="cleanHTML()">🧹 Clean HTML</button>
+            <button class="btn-success" onclick="copyToClipboard()">📋 Copy Output</button>
+            <button class="btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+
+        <div class="loading" id="loading">Processing...</div>
+        <div class="info-box" id="info-box"></div>
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        const inputEl = document.getElementById('input');
+        const outputEl = document.getElementById('output');
+        const statusEl = document.getElementById('status');
+        const loadingEl = document.getElementById('loading');
+        const infoBoxEl = document.getElementById('info-box');
+        const inputCounter = document.getElementById('input-counter');
+        const outputCounter = document.getElementById('output-counter');
+
+        // Update character counters
+        function updateCounters() {
+            const inputLength = inputEl.value.length;
+            const outputLength = outputEl.value.length;
+            
+            inputCounter.textContent = `${inputLength.toLocaleString()} chars`;
+            outputCounter.textContent = `${outputLength.toLocaleString()} chars`;
+        }
+
+        inputEl.addEventListener('input', updateCounters);
+
+        // Main cleanup function
+        function cleanHTML() {
+            const input = inputEl.value.trim();
+            
+            if (!input) {
+                showStatus('Please paste some HTML in the input field', 'error');
+                return;
+            }
+
+            loadingEl.classList.add('active');
+            statusEl.style.display = 'none';
+            infoBoxEl.classList.remove('show');
+
+            // Use setTimeout to allow UI to update
+            setTimeout(() => {
+                try {
+                    const result = processHTML(input);
+                    outputEl.value = result.cleaned;
+                    updateCounters();
+                    
+                    // Show warnings if any
+                    if (result.warnings.length > 0) {
+                        showInfo(result.warnings.join(' '));
+                    }
+                    
+                    showStatus('✓ HTML cleaned successfully!', 'success');
+                } catch (error) {
+                    showStatus(`Error: ${error.message}`, 'error');
+                    console.error(error);
+                } finally {
+                    loadingEl.classList.remove('active');
+                }
+            }, 10);
+        }
+
+        // Process HTML using DOM parsing
+        function processHTML(htmlString) {
+            const warnings = [];
+            
+            // Parse HTML into DOM
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+            
+            // Check for parsing errors
+            const parserError = doc.querySelector('parsererror');
+            if (parserError) {
+                throw new Error('Invalid HTML syntax: ' + parserError.textContent);
+            }
+            
+            // Warn if HTML structure was auto-corrected
+            const nestedHtml = doc.querySelector('html > body > html');
+            const multipleBodies = doc.querySelectorAll('body').length > 1;
+            
+            if (nestedHtml || multipleBodies) {
+                warnings.push('ℹ️ <strong>Note:</strong> The browser auto-corrected some HTML structure issues (unclosed/mismatched tags). The output may differ slightly from input.');
+            }
+            
+            // Check for common issues
+            const unclosedSpans = (htmlString.match(/<span/gi) || []).length - 
+                                 (htmlString.match(/<\/span>/gi) || []).length;
+            
+            if (Math.abs(unclosedSpans) > 0) {
+                warnings.push(`ℹ️ <strong>Auto-fixed:</strong> Found ${Math.abs(unclosedSpans)} unclosed span tag(s).`);
+            }
+            
+            // Process the body content
+            processNode(doc.body);
+            
+            // Return cleaned HTML and warnings
+            return {
+                cleaned: doc.body.innerHTML,
+                warnings: warnings
+            };
+        }
+
+        // Recursively process DOM nodes
+        function processNode(node) {
+            // Process all child nodes first (bottom-up approach)
+            const children = Array.from(node.childNodes);
+            
+            for (let child of children) {
+                if (child.nodeType === Node.ELEMENT_NODE) {
+                    processNode(child);
+                }
+            }
+
+            // If this is a span element, unwrap it
+            if (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'span') {
+                unwrapElement(node);
+            } 
+            // For other elements, remove unwanted attributes
+            else if (node.nodeType === Node.ELEMENT_NODE) {
+                cleanAttributes(node);
+            }
+        }
+
+        // Unwrap span element (replace it with its children)
+        function unwrapElement(element) {
+            const parent = element.parentNode;
+            
+            if (!parent) return;
+
+            // Move all children of the span to its parent
+            while (element.firstChild) {
+                parent.insertBefore(element.firstChild, element);
+            }
+
+            // Remove the now-empty span
+            parent.removeChild(element);
+        }
+
+        // Remove unwanted attributes from element
+        function cleanAttributes(element) {
+            // Remove style, class, and color attributes
+            element.removeAttribute('style');
+            element.removeAttribute('class');
+            element.removeAttribute('color');
+            
+            // Also remove lang attribute if present (optional, based on your needs)
+            // Uncomment the line below if you want to remove lang attributes too
+            // element.removeAttribute('lang');
+        }
+
+        // Copy output to clipboard
+        async function copyToClipboard() {
+            const output = outputEl.value;
+            
+            if (!output) {
+                showStatus('Nothing to copy. Clean some HTML first!', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(output);
+                showStatus('✓ Copied to clipboard!', 'success');
+            } catch (error) {
+                // Fallback for older browsers
+                outputEl.select();
+                document.execCommand('copy');
+                showStatus('✓ Copied to clipboard!', 'success');
+            }
+        }
+
+        // Clear all text areas
+        function clearAll() {
+            inputEl.value = '';
+            outputEl.value = '';
+            updateCounters();
+            statusEl.style.display = 'none';
+            infoBoxEl.classList.remove('show');
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Show info message
+        function showInfo(message) {
+            infoBoxEl.innerHTML = message;
+            infoBoxEl.classList.add('show');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter to clean
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                cleanHTML();
+            }
+            // Ctrl/Cmd + K to clear
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                clearAll();
+            }
+        });
+
+        // Initialize
+        updateCounters();
+    </script>
+</body>
+</html>
